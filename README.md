@@ -127,5 +127,5 @@ For major changes, please open an issue first to discuss what you would like to 
 
 ## 📄 License
 
-MIT License © 2025 [Your Name / BitCrawllers]
+MIT License © 2025 BitCrawllers
 
