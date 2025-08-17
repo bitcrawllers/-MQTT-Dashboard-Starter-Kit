@@ -1,4 +1,4 @@
-# 📡 MQTT Dashboard Starter Kit (UI Only)
+<img width="1355" height="643" alt="image" src="https://github.com/user-attachments/assets/930cd357-daba-4d10-bfc7-327ddf88ed21" /># 📡 MQTT Dashboard Starter Kit (UI Only)
 
 A modern, interactive **MQTT Dashboard Starter Kit** built with **HTML, CSS, and JavaScript (UI only)**.\
 This project simulates the look and feel of a real IoT dashboard where users can connect to MQTT brokers, publish/subscribe to topics, and view real-time data streams.
@@ -113,7 +113,8 @@ Open `index.html` in your browser — no build required.
 
 ## 📸 Screenshots (UI Preview)
 
-👉 Add screenshots here after you polish the UI
+<img width="1355" height="643" alt="image" src="https://github.com/user-attachments/assets/f8a5ac65-166d-473b-9ff1-7c04218e189f" />
+
 
 ---
 
