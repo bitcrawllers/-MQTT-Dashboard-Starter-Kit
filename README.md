@@ -103,7 +103,7 @@ Currently, only the **UI components** are implemented — backend logic and real
 Clone the repo:
 
 ```bash
-git clone https://github.com/yourusername/mqtt-dashboard-starter-kit.git
+https://github.com/bitcrawllers/-MQTT-Dashboard-Starter-Kit
 cd mqtt-dashboard-starter-kit
 ```
 
