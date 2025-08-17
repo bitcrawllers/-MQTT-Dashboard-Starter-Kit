@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MQTT Dashboard Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563EB;
+            --success: #10B981;
+            --error: #EF4444;
+            --warning: #F59E0B;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --gradient: linear-gradient(135deg, var(--primary), var(--success));
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border: #475569;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 36px;
+            height: 36px;
+            background: var(--gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .app-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-error {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .theme-toggle {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-tertiary);
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: flex;
+            min-height: calc(100vh - 64px - 60px);
+        }
+
+        .sidebar {
+            width: 320px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: var(--bg-primary);
+        }
+
+        /* Tabs */
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+            margin-bottom: 20px;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--shadow-lg);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Status Indicators */
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.disconnected {
+            background: var(--error);
+            animation: none;
+        }
+
+        .status-dot.connecting {
+            background: var(--warning);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Logs */
+        .logs-container {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            padding: 12px;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            display: flex;
+            gap: 8px;
+            word-break: break-all;
+        }
+
+        .log-timestamp {
+            color: var(--text-muted);
+            min-width: 80px;
+            flex-shrink: 0;
+        }
+
+        .log-topic {
+            color: var(--primary);
+            min-width: 120px;
+            flex-shrink: 0;
+        }
+
+        .log-message {
+            color: var(--text-secondary);
+            flex: 1;
+        }
+
+        /* Subscriptions List */
+        .subscription-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .subscription-topic {
+            font-family: 'Monaco', 'Menlo', monospace;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .subscription-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+
+        /* Performance Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: var(--bg-primary);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .progress-fill.warning {
+            background: var(--warning);
+        }
+
+        .progress-fill.error {
+            background: var(--error);
+        }
+
+        /* AI Insights */
+        .ai-insight {
+            background: linear-gradient(135deg, var(--primary), var(--success));
+            color: white;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .ai-insight::before {
+            content: '🤖';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 18px;
+        }
+
+        .insight-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .insight-content {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .suggestion-item {
+            background: var(--bg-primary);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+            margin-bottom: 8px;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--warning);
+            color: var(--warning);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            height: 60px;
+        }
+
+        .broker-info {
+            font-family: 'Monaco', 'Menlo', monospace;
+            color: var(--text-muted);
+        }
+
+        /* Mobile Responsive */
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-toggle {
+                display: block;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 64px;
+                left: 0;
+                height: calc(100vh - 64px - 60px);
+                z-index: 90;
+                box-shadow: var(--shadow-lg);
+            }
+
+            .main-content {
+                padding: 16px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .app-name {
+                display: none;
+            }
+
+            .header-controls {
+                gap: 8px;
+            }
+
+            .modal {
+                width: 95%;
+                margin: 20px;
+            }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-section">
+            <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+            <div class="logo">M</div>
+            <span class="app-name">MQTT Dashboard Pro</span>
+        </div>
+        <div class="header-controls">
+            <button class="btn btn-primary" id="connectBtn" onclick="showConnectModal()">
+                Connect to Broker
+            </button>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <span id="theme-icon">🌙</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Connection Modal -->
+    <div class="modal-overlay" id="connectModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Connect to MQTT Broker</h2>
+                <button class="close-btn" onclick="hideConnectModal()">×</button>
+            </div>
+            <form onsubmit="connectToBroker(event)">
+                <div class="form-group">
+                    <label class="form-label">Broker URL</label>
+                    <input type="text" class="form-input" id="brokerUrl" value="wss://broker.hivemq.com:8000/mqtt" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Username (optional)</label>
+                    <input type="text" class="form-input" id="username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password (optional)</label>
+                    <input type="password" class="form-input" id="password">
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="hideConnectModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="connectSubmitBtn">
+                        <span id="connectSpinner" style="display: none;"><div class="spinner"></div></span>
+                        <span id="connectText">Connect</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div style="padding: 20px;">
+                <!-- Publish Panel -->
+                <div class="card">
+                    <h3 class="card-title">Publish Message</h3>
+                    <form onsubmit="publishMessage(event)">
+                        <div class="form-group">
+                            <label class="form-label">Topic</label>
+                            <input type="text" class="form-input" id="publishTopic" placeholder="sensors/temperature" value="sensors/temperature">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">JSON Payload</label>
+                            <textarea class="form-input form-textarea" id="publishPayload" placeholder='{"value": 25.6, "unit": "°C"}'>{
+  "value": 25.6,
+  "unit": "°C",
+  "timestamp": "2024-01-01T12:00:00Z"
+}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Publish</button>
+                    </form>
+                </div>
+
+                <!-- Subscribe Panel -->
+                <div class="card">
+                    <h3 class="card-title">Subscribe to Topic</h3>
+                    <form onsubmit="subscribeTopic(event)">
+                        <div class="form-group">
+                            <label class="form-label">Topic</label>
+                            <input type="text" class="form-input" id="subscribeTopic" placeholder="sensors/+">
+                        </div>
+                        <button type="submit" class="btn btn-success" style="width: 100%;">Subscribe</button>
+                    </form>
+                </div>
+
+                <!-- Active Subscriptions -->
+                <div class="card">
+                    <h3 class="card-title">Active Subscriptions</h3>
+                    <div id="subscriptionsList">
+                        <div class="subscription-item">
+                            <span class="subscription-topic">sensors/+</span>
+                            <div class="subscription-actions">
+                                <button class="btn btn-error btn-small" onclick="unsubscribe('sensors/+')">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Tabs -->
+            <div class="tab-container">
+                <button class="tab active" onclick="switchTab('dashboard')">Dashboard</button>
+                <button class="tab" onclick="switchTab('insights')">AI Insights</button>
+                <button class="tab" onclick="switchTab('performance')">Performance</button>
+                <button class="tab" onclick="switchTab('alerts')">Alerts</button>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <div class="dashboard-grid">
+                    <!-- Real-time Chart -->
+                    <div class="card full-width">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title">Real-time Sensor Data</h3>
+                                <p class="card-subtitle">Live temperature and humidity monitoring</p>
+                            </div>
+                            <button class="btn btn-secondary btn-small" onclick="exportLogs()">Export Data</button>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="sensorChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Live Logs -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Live Message Logs</h3>
+                            <button class="btn btn-secondary btn-small" onclick="clearLogs()">Clear</button>
+                        </div>
+                        <div class="logs-container" id="logsContainer"></div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="card">
+                        <h3 class="card-title">Session Statistics</h3>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-value" id="messagesCount">0</div>
+                                <div class="metric-label">Messages</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="topicsCount">1</div>
+                                <div class="metric-label">Topics</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Insights Tab -->
+            <div id="insights" class="tab-content">
+                <div class="card">
+                    <h3 class="card-title">AI-Powered Analytics</h3>
+                    <div id="aiInsights">
+                        <div class="ai-insight">
+                            <div class="insight-title">Temperature Analysis</div>
+                            <div class="insight-content">Average temperature in the last 5 minutes: <strong>28.4°C</strong>. Temperature trend is stable with minimal variance.</div>
+                        </div>
+                        <div class="ai-insight">
+                            <div class="insight-title">Device Performance</div>
+                            <div class="insight-content">Device ESP32-01 is publishing at optimal frequency (12 msgs/min). No performance issues detected.</div>
+                        </div>
+                        <div class="ai-insight">
+                            <div class="insight-title">Network Load</div>
+                            <div class="insight-content">Broker load is stable for current 127 connected devices. Network latency: 23ms average.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">Optimization Suggestions</h3>
+                    <div id="suggestions">
+                        <div class="suggestion-item">
+                            <strong>💡 Suggestion:</strong> Enable message batching for high-frequency sensors to reduce broker load by up to 30%.
+                        </div>
+                        <div class="suggestion-item">
+                            <strong>🔧 Optimization:</strong> Consider using QoS 1 for critical temperature alerts instead of QoS 0 for better reliability.
+                        </div>
+                        <div class="suggestion-item">
+                            <strong>📊 Efficiency:</strong> Implement data compression for JSON payloads larger than 1KB to improve network performance.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Tab -->
+            <div id="performance" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Broker Performance Monitor</h3>
+                        <div>
+                            <button class="btn btn-secondary btn-small" onclick="setDeviceCount(100)">100 Devices</button>
+                            <button class="btn btn-secondary btn-small" onclick="setDeviceCount(500)">500 Devices</button>
+                            <button class="btn btn-secondary btn-small" onclick="setDeviceCount(1000)">1000 Devices</button>
+                        </div>
+                    </div>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="connectedDevices">127</div>
+                            <div class="metric-label">Connected Devices</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="messagesPerSecond">45</div>
+                            <div class="metric-label">Messages/Second</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="avgLatency">23ms</div>
+                            <div class="metric-label">Avg Latency</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="uptime">99.8%</div>
+                            <div class="metric-label">Uptime</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <h4 style="margin-bottom: 16px; color: var(--text-primary);">Resource Usage</h4>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 8px; font-size: 14px; color: var(--text-secondary);">CPU Usage: <span id="cpuUsage">45%</span></label>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="cpuProgress" style="width: 45%;"></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 8px; font-size: 14px; color: var(--text-secondary);">Memory Usage: <span id="memoryUsage">62%</span></label>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="memoryProgress" style="width: 62%;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-size: 14px; color: var(--text-secondary);">Network I/O: <span id="networkUsage">38%</span></label>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="networkProgress" style="width: 38%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts Tab -->
+            <div id="alerts" class="tab-content">
+                <div class="card">
+                    <h3 class="card-title">System Alerts</h3>
+                    <div id="alertsList">
+                        <div class="alert alert-warning">
+                            <span>⚠️</span>
+                            <div>
+                                <strong>High Latency Detected</strong><br>
+                                Device ESP32-03 showing increased response time (150ms avg)
+                            </div>
+                        </div>
+                        <div class="alert alert-error">
+                            <span>🚨</span>
+                            <div>
+                                <strong>Device Offline</strong><br>
+                                Sensor Node-07 hasn't sent data in 5 minutes
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="status-indicator">
+            <div class="status-dot disconnected" id="statusDot"></div>
+            <span id="connectionStatus">Disconnected</span>
+        </div>
+        <div class="broker-info" id="brokerInfo">No broker connected</div>
+    </footer>
+
+    <script>
+        // Global state
+        let isConnected = false;
+        let isDarkMode = false;
+        let sidebarCollapsed = false;
+        let currentTab = 'dashboard';
+        let chart = null;
+        let messageCount = 0;
+        let topicCount = 1;
+        let sessionLogs = [];
+        let subscriptions = new Set(['sensors/+']);
+        let deviceCount = 127;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeChart();
+            startPerformanceSimulation();
+            populateInitialLogs();
+            updateAIInsights();
+        });
+
+        // Theme toggle
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            document.getElementById('theme-icon').textContent = isDarkMode ? '☀️' : '🌙';
+            
+            if (chart) {
+                updateChartTheme();
+            }
+        }
+
+        // Sidebar toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebarCollapsed = !sidebarCollapsed;
+            sidebar.classList.toggle('collapsed', sidebarCollapsed);
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Remove active class from all tabs and content
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to selected tab and content
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            currentTab = tabName;
+        }
+
+        // Connection modal
+        function showConnectModal() {
+            document.getElementById('connectModal').classList.add('active');
+        }
+
+        function hideConnectModal() {
+            document.getElementById('connectModal').classList.remove('active');
+        }
+
+        // Connection simulation
+        function connectToBroker(event) {
+            event.preventDefault();
+            
+            const connectBtn = document.getElementById('connectSubmitBtn');
+            const spinner = document.getElementById('connectSpinner');
+            const text = document.getElementById('connectText');
+            const statusDot = document.getElementById('statusDot');
+            const connectionStatus = document.getElementById('connectionStatus');
+            const brokerInfo = document.getElementById('brokerInfo');
+            const headerBtn = document.getElementById('connectBtn');
+            
+            // Show loading state
+            spinner.style.display = 'block';
+            text.textContent = 'Connecting...';
+            connectBtn.disabled = true;
+            statusDot.className = 'status-dot connecting';
+            connectionStatus.textContent = 'Connecting...';
+            
+            // Simulate connection process
+            setTimeout(() => {
+                const success = Math.random() > 0.1; // 90% success rate
+                
+                if (success) {
+                    isConnected = true;
+                    statusDot.className = 'status-dot';
+                    connectionStatus.textContent = 'Connected';
+                    brokerInfo.textContent = document.getElementById('brokerUrl').value;
+                    headerBtn.textContent = 'Disconnect';
+                    headerBtn.className = 'btn btn-error';
+                    headerBtn.onclick = disconnect;
+                    
+                    addLog('SUCCESS', 'broker/connection', 'Connected to MQTT broker successfully');
+                    hideConnectModal();
+                    startDataSimulation();
+                } else {
+                    statusDot.className = 'status-dot disconnected';
+                    connectionStatus.textContent = 'Connection Failed';
+                    addLog('ERROR', 'broker/connection', 'Failed to connect to MQTT broker');
+                    alert('Connection failed. Please check your broker settings.');
+                }
+                
+                // Reset button state
+                spinner.style.display = 'none';
+                text.textContent = 'Connect';
+                connectBtn.disabled = false;
+            }, 2000);
+        }
+
+        function disconnect() {
+            isConnected = false;
+            const statusDot = document.getElementById('statusDot');
+            const connectionStatus = document.getElementById('connectionStatus');
+            const brokerInfo = document.getElementById('brokerInfo');
+            const headerBtn = document.getElementById('connectBtn');
+            
+            statusDot.className = 'status-dot disconnected';
+            connectionStatus.textContent = 'Disconnected';
+            brokerInfo.textContent = 'No broker connected';
+            headerBtn.textContent = 'Connect to Broker';
+            headerBtn.className = 'btn btn-primary';
+            headerBtn.onclick = showConnectModal;
+            
+            addLog('INFO', 'broker/connection', 'Disconnected from MQTT broker');
+        }
+
+        // Chart initialization
+        function initializeChart() {
+            const ctx = document.getElementById('sensorChart').getContext('2d');
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: [],
+                        borderColor: '#2563EB',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Humidity (%)',
+                        data: [],
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: isDarkMode ? '#475569' : '#e2e8f0'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: isDarkMode ? '#475569' : '#e2e8f0'
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 750,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+        }
+
+        function updateChartTheme() {
+            chart.options.scales.y.grid.color = isDarkMode ? '#475569' : '#e2e8f0';
+            chart.options.scales.x.grid.color = isDarkMode ? '#475569' : '#e2e8f0';
+            chart.update();
+        }
+
+        // Data simulation
+        function startDataSimulation() {
+            if (!isConnected) return;
+            
+            setInterval(() => {
+                if (!isConnected) return;
+                
+                const now = new Date();
+                const timeLabel = now.toLocaleTimeString();
+                
+                // Generate sensor data
+                const temperature = 20 + Math.random() * 15;
+                const humidity = 40 + Math.random() * 40;
+                
+                // Update chart
+                if (chart.data.labels.length > 20) {
+                    chart.data.labels.shift();
+                    chart.data.datasets[0].data.shift();
+                    chart.data.datasets[1].data.shift();
+                }
+                
+                chart.data.labels.push(timeLabel);
+                chart.data.datasets[0].data.push(temperature.toFixed(1));
+                chart.data.datasets[1].data.push(humidity.toFixed(1));
+                chart.update('none');
+                
+                // Add logs
+                if (Math.random() > 0.6) {
+                    const sensors = ['temperature', 'humidity', 'pressure', 'light'];
+                    const sensor = sensors[Math.floor(Math.random() * sensors.length)];
+                    const value = sensor === 'temperature' ? temperature.toFixed(1) : 
+                                 sensor === 'humidity' ? humidity.toFixed(1) :
+                                 sensor === 'pressure' ? (1000 + Math.random() * 50).toFixed(1) :
+                                 (Math.random() * 1000).toFixed(0);
+                    
+                    const payload = {
+                        value: parseFloat(value),
+                        unit: sensor === 'temperature' ? '°C' : 
+                              sensor === 'humidity' ? '%' : 
+                              sensor === 'pressure' ? 'hPa' : 'lux',
+                        timestamp: now.toISOString(),
+                        device: `ESP32-${Math.floor(Math.random() * 10).toString().padStart(2, '0')}`
+                    };
+                    
+                    addLog('DATA', `sensors/${sensor}`, JSON.stringify(payload));
+                }
+            }, 3000);
+        }
+
+        // Performance simulation
+        function startPerformanceSimulation() {
+            setInterval(() => {
+                // Update metrics
+                const messagesPerSecond = Math.floor(Math.random() * 20) + 30;
+                const avgLatency = Math.floor(Math.random() * 30) + 15;
+                const cpuUsage = Math.floor(Math.random() * 40) + 20;
+                const memoryUsage = Math.floor(Math.random() * 30) + 40;
+                const networkUsage = Math.floor(Math.random() * 40) + 20;
+                
+                document.getElementById('messagesPerSecond').textContent = messagesPerSecond;
+                document.getElementById('avgLatency').textContent = avgLatency + 'ms';
+                document.getElementById('cpuUsage').textContent = cpuUsage + '%';
+                document.getElementById('memoryUsage').textContent = memoryUsage + '%';
+                document.getElementById('networkUsage').textContent = networkUsage + '%';
+                
+                // Update progress bars
+                updateProgressBar('cpuProgress', cpuUsage);
+                updateProgressBar('memoryProgress', memoryUsage);
+                updateProgressBar('networkProgress', networkUsage);
+                
+                // Update AI insights periodically
+                if (Math.random() > 0.9) {
+                    updateAIInsights();
+                }
+            }, 5000);
+        }
+
+        function updateProgressBar(id, value) {
+            const progressBar = document.getElementById(id);
+            progressBar.style.width = value + '%';
+            
+            // Change color based on usage
+            progressBar.className = 'progress-fill';
+            if (value > 80) {
+                progressBar.classList.add('error');
+            } else if (value > 60) {
+                progressBar.classList.add('warning');
+            }
+        }
+
+        function setDeviceCount(count) {
+            deviceCount = count;
+            document.getElementById('connectedDevices').textContent = count;
+            
+            // Simulate higher load with more devices
+            const baseLoad = Math.floor(count / 10);
+            document.getElementById('messagesPerSecond').textContent = baseLoad + Math.floor(Math.random() * 20);
+        }
+
+        // Logging
+        function addLog(level, topic, message) {
+            const logsContainer = document.getElementById('logsContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `
+                <span class="log-timestamp">${timestamp}</span>
+                <span class="log-topic">${topic}</span>
+                <span class="log-message">${message}</span>
+            `;
+            
+            logsContainer.appendChild(logEntry);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+            
+            // Store in session logs
+            sessionLogs.push({
+                timestamp: new Date().toISOString(),
+                level,
+                topic,
+                message
+            });
+            
+            // Update message count
+            messageCount++;
+            document.getElementById('messagesCount').textContent = messageCount;
+            
+            // Keep only last 100 logs in UI
+            while (logsContainer.children.length > 100) {
+                logsContainer.removeChild(logsContainer.firstChild);
+            }
+        }
+
+        function populateInitialLogs() {
+            const initialLogs = [
+                { level: 'INFO', topic: 'system/startup', message: 'MQTT Dashboard initialized' },
+                { level: 'INFO', topic: 'system/config', message: 'Loading configuration...' },
+                { level: 'SUCCESS', topic: 'system/ready', message: 'Dashboard ready for connections' }
+            ];
+            
+            initialLogs.forEach(log => {
+                addLog(log.level, log.topic, log.message);
+            });
+        }
+
+        function clearLogs() {
+            document.getElementById('logsContainer').innerHTML = '';
+            sessionLogs = [];
+            messageCount = 0;
+            document.getElementById('messagesCount').textContent = '0';
+        }
+
+        // Publishing
+        function publishMessage(event) {
+            event.preventDefault();
+            
+            if (!isConnected) {
+                alert('Please connect to a broker first');
+                return;
+            }
+            
+            const topic = document.getElementById('publishTopic').value;
+            const payload = document.getElementById('publishPayload').value;
+            
+            try {
+                JSON.parse(payload); // Validate JSON
+                addLog('PUBLISH', topic, payload);
+                
+                // Simulate successful publish
+                setTimeout(() => {
+                    addLog('SUCCESS', topic, 'Message published successfully');
+                }, 200);
+                
+            } catch (error) {
+                addLog('ERROR', topic, `Invalid JSON: ${error.message}`);
+            }
+        }
+
+        // Subscriptions
+        function subscribeTopic(event) {
+            event.preventDefault();
+            
+            if (!isConnected) {
+                alert('Please connect to a broker first');
+                return;
+            }
+            
+            const topic = document.getElementById('subscribeTopic').value.trim();
+            if (!topic) return;
+            
+            if (subscriptions.has(topic)) {
+                alert('Already subscribed to this topic');
+                return;
+            }
+            
+            subscriptions.add(topic);
+            topicCount = subscriptions.size;
+            document.getElementById('topicsCount').textContent = topicCount;
+            
+            // Add to UI
+            const subscriptionsList = document.getElementById('subscriptionsList');
+            const item = document.createElement('div');
+            item.className = 'subscription-item';
+            item.innerHTML = `
+                <span class="subscription-topic">${topic}</span>
+                <div class="subscription-actions">
+                    <button class="btn btn-error btn-small" onclick="unsubscribe('${topic}')">Remove</button>
+                </div>
+            `;
+            subscriptionsList.appendChild(item);
+            
+            addLog('SUBSCRIBE', topic, 'Subscribed to topic');
+            document.getElementById('subscribeTopic').value = '';
+        }
+
+        function unsubscribe(topic) {
+            subscriptions.delete(topic);
+            topicCount = subscriptions.size;
+            document.getElementById('topicsCount').textContent = topicCount;
+            
+            // Remove from UI
+            const items = document.querySelectorAll('.subscription-item');
+            items.forEach(item => {
+                if (item.querySelector('.subscription-topic').textContent === topic) {
+                    item.remove();
+                }
+            });
+            
+            addLog('UNSUBSCRIBE', topic, 'Unsubscribed from topic');
+        }
+
+        // AI Insights
+        function updateAIInsights() {
+            const insights = [
+                {
+                    title: 'Temperature Analysis',
+                    content: `Average temperature in the last 5 minutes: <strong>${(22 + Math.random() * 8).toFixed(1)}°C</strong>. Temperature trend is ${Math.random() > 0.5 ? 'stable' : 'slightly increasing'} with ${Math.random() > 0.5 ? 'minimal' : 'moderate'} variance.`
+                },
+                {
+                    title: 'Device Performance',
+                    content: `Device ESP32-${Math.floor(Math.random() * 10).toString().padStart(2, '0')} is publishing at ${Math.random() > 0.7 ? 'optimal' : 'high'} frequency (${Math.floor(Math.random() * 20 + 10)} msgs/min). ${Math.random() > 0.8 ? 'Performance issues detected.' : 'No performance issues detected.'}`
+                },
+                {
+                    title: 'Network Load',
+                    content: `Broker load is ${Math.random() > 0.7 ? 'stable' : 'elevated'} for current ${deviceCount} connected devices. Network latency: ${Math.floor(Math.random() * 20 + 15)}ms average.`
+                }
+            ];
+            
+            const container = document.getElementById('aiInsights');
+            container.innerHTML = insights.map(insight => `
+                <div class="ai-insight">
+                    <div class="insight-title">${insight.title}</div>
+                    <div class="insight-content">${insight.content}</div>
+                </div>
+            `).join('');
+        }
+
+        // Export functionality
+        function exportLogs() {
+            if (sessionLogs.length === 0) {
+                alert('No logs to export');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(sessionLogs, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `mqtt-logs-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // Window resize handler
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768 && sidebarCollapsed) {
+                toggleSidebar();
+            }
+        });
+
+        // Click outside modal to close
+        document.getElementById('connectModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideConnectModal();
+            }
+        });
+    </script>
+</body>
+</html>
