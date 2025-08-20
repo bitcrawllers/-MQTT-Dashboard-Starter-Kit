@@ -54,7 +54,7 @@ To evolve this project into a full IoT connectivity framework with:
    git checkout -b feature/<feature-name>
 4. Develop and test your changes
 5. Commit and push:
-```bash
+   ```bash
   git add .
   git commit -m "Add <feature/fix description>"
   git push origin feature/<feature-name>
