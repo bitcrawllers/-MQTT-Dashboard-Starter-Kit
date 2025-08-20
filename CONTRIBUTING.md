@@ -48,7 +48,7 @@ To evolve this project into a full IoT connectivity framework with:
    ```bash
    git clone https://github.com/<your-username>/mqtt-dashboard-starter-kit.git
    cd mqtt-dashboard-starter-kit
-   bash```
+   
 3. Create a new branch for your feature/fix:
   ```bash
    git checkout -b feature/<feature-name>
