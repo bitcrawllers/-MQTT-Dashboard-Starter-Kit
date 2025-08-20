@@ -60,36 +60,31 @@ git add .
 git commit -m "Add <feature/fix description>"
 git push origin feature/<feature-name>
 
-## Roadmap
+Roadmap
 
-- **Phase 1 (Current):** Build backend system with MQTT broker integration  
-- **Phase 2:** Add authentication, multi-device support, and real-time dashboard features  
-- **Phase 3:** Implement peer-to-peer IoT connectivity  
-- **Phase 4:** Integrate Edge AI features  
+Phase 1 (Current): Build backend system with MQTT broker integration
 
----
+Phase 2: Add authentication, multi-device support, and real-time dashboard features
 
-## Good First Issues
+Phase 3: Implement peer-to-peer IoT connectivity
 
-- Setup a Flask backend scaffold  
-- Create basic REST API endpoints to serve frontend data  
-- Add WebSocket support for live updates  
-- Write documentation for setting up a local MQTT broker  
-- Improve frontend charts and logs for simulated data  
+Phase 4: Integrate Edge AI features
 
----
+Good First Issues
 
-## Community
+Setup a Flask backend scaffold
 
-Join discussions in the DevHeads IoT community or open a GitHub Discussion.  
-Share ideas, ask questions, and collaborate on experiments.  
+Create basic REST API endpoints to serve frontend data
 
----
+Add WebSocket support for live updates
 
-## Code of Conduct
+Write documentation for setting up a local MQTT broker
 
-All contributors are expected to follow a respectful, inclusive, and collaborative approach.  
-Be constructive and supportive in all interactions.
+Improve frontend charts and logs for simulated data
 
+Community
+
+Join discussions in the DevHeads IoT community or open a GitHub Discussion.
+Share ideas, ask questions, and collaborate on experiments.
 
    
