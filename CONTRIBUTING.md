@@ -50,7 +50,6 @@ To evolve this project into a full IoT connectivity framework with:
    cd mqtt-dashboard-starter-kit
    
 3. Create a new branch for your feature/fix:
-  ```bash
    git checkout -b feature/<feature-name>
    bash```
 4. Develop and test your changes
@@ -59,7 +58,6 @@ To evolve this project into a full IoT connectivity framework with:
   git add .
   git commit -m "Add <feature/fix description>"
   git push origin feature/<feature-name>
-   bash```
 ## Roadmap
 
 - **Phase 1 (Current):** Build backend system with MQTT broker integration  
