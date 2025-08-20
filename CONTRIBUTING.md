@@ -50,10 +50,10 @@ To evolve this project into a full IoT connectivity framework with:
    cd mqtt-dashboard-starter-kit
    
 3. Create a new branch for your feature/fix:
+   ```bash
    git checkout -b feature/<feature-name>
-   bash```
-4. Develop and test your changes
-5. Commit and push:
+5. Develop and test your changes
+6. Commit and push:
    ```bash
   git add .
   git commit -m "Add <feature/fix description>"
