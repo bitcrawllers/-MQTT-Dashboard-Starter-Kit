@@ -52,12 +52,13 @@ To evolve this project into a full IoT connectivity framework with:
 3. Create a new branch for your feature/fix:
    ```bash
    git checkout -b feature/<feature-name>
-5. Develop and test your changes
-6. Commit and push:
+4. Develop and test your changes
+5. Commit and push:
    ```bash
   git add .
   git commit -m "Add <feature/fix description>"
   git push origin feature/<feature-name>
+
 ## Roadmap
 
 - **Phase 1 (Current):** Build backend system with MQTT broker integration  
